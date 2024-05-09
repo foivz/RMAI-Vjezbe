@@ -14,6 +14,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.viewpager2.widget.ViewPager2
@@ -37,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnStartGame: Button
 
     lateinit var onSharedPreferenceChangeListener: OnSharedPreferenceChangeListener
+    lateinit var tvHighScore: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +62,10 @@ class MainActivity : AppCompatActivity() {
             val intent: Intent = Intent(this, GameActivity::class.java)
             startActivity(intent)
         }
+
+        tvHighScore = findViewById(R.id.tvHighScore)
+        tvHighScore.text = this.getSharedPreferences("RMAI-High-Scores", Context.MODE_PRIVATE)
+            .getLong("fastestTime", 0).toString()
     }
 
     private fun connectNavDrawerWithViewPager() {
