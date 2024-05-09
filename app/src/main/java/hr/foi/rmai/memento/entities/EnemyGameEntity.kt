@@ -27,5 +27,7 @@ class EnemyGameEntity(context: Context, width: Int, height: Int, title: String):
             x = maxX
             y = generator.nextInt(maxY)
         }
+
+        super.update()
     }
 }

@@ -1,6 +1,7 @@
 package hr.foi.rmai.memento.entities
 
 import android.content.Context
+import android.graphics.Rect
 
 abstract class GameEntity(context: Context, width: Int, height: Int) {
     protected val sizeX = 128
@@ -17,10 +18,19 @@ abstract class GameEntity(context: Context, width: Int, height: Int) {
     public var speed = 0
     public var playerSpeed = 0
 
+    val hitbox: Rect
+
     init {
         maxX = width
         maxY = height
+
+        hitbox = Rect(x, y, x + sizeX, y + sizeY)
     }
 
-    abstract fun update()
+    open fun update() {
+        hitbox.left = x
+        hitbox.right = x + sizeX
+        hitbox.top = y
+        hitbox.bottom = y + sizeY
+    }
 }

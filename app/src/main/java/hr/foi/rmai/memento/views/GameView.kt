@@ -48,7 +48,14 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
             }
 
             enemyList.forEach { enemy ->
-                canvas.drawText(enemy.enemyTitle, enemy.x.toFloat(), enemy.y.toFloat(), paint)
+                val textBounds = Rect()
+                paint.getTextBounds(enemy.enemyTitle, 0, enemy.enemyTitle.length,
+                    textBounds)
+
+                canvas.drawText(enemy.enemyTitle,
+                    (enemy.hitbox.centerX() + textBounds.width() / 2).toFloat(),
+                    (enemy.hitbox.centerY() + textBounds.height() / 2).toFloat(),
+                    paint)
             }
 
             canvas.drawBitmap(player.bitmap, player.x.toFloat(), player.y.toFloat(), paint)
@@ -62,9 +69,21 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
             spaceDust.update()
         }
 
+        var hitDetected = false
         enemyList.forEach { enemy ->
             enemy.playerSpeed = player.speed
             enemy.update()
+
+            if (Rect.intersects(enemy.hitbox, player.hitbox)) {
+                hitDetected = true
+            }
+        }
+        if (hitDetected) {
+            player.reduceShieldStrength()
+            if (player.shieldStrength < 0) {
+                gameEnded = true
+                player.shieldStrength = 0
+            }
         }
     }
 
