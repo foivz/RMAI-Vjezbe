@@ -17,6 +17,9 @@ class PlayerGameEntity(context: Context, width: Int, height: Int):
     private val MIN_SPEED = 1
     private val GRAVITY = -10
 
+    private val maxShieldStrength = 30
+    public var shieldStrength = maxShieldStrength
+
     init {
         bitmap = Bitmap.createScaledBitmap(
             BitmapFactory.decodeResource(context.resources, R.drawable.ship),
@@ -47,5 +50,15 @@ class PlayerGameEntity(context: Context, width: Int, height: Int):
         {
             y = maxY
         }
+
+        super.update()
+    }
+
+    public fun reduceShieldStrength() {
+        shieldStrength--
+    }
+
+    public fun resetShieldStrength() {
+        shieldStrength = maxShieldStrength
     }
 }

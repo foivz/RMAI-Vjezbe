@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Rect
 import android.view.MotionEvent
 import android.view.SurfaceView
 import hr.foi.rmai.memento.database.TasksDatabase
@@ -20,6 +21,12 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
 
     private val spaceDustNum = 30
 
+    private var gameEnded = false
+    private var distanceRemaining = 10000
+    private var timeTaken: Long = 0
+    private var timeStarted: Long = 0
+    private var fastestTime: Long = 999999999999
+
     init {
         player = PlayerGameEntity(context, width, height)
 
@@ -31,6 +38,11 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
             .getAllCategories().forEach { taskCategory ->
                 enemyList.add(EnemyGameEntity(context, width, height, taskCategory.name))
             }
+
+        fastestTime = context.getSharedPreferences("RMAI-High-Scores", Context.MODE_PRIVATE)
+            .getLong("fastestTime", 999999999)
+
+        startGame()
     }
 
     override fun draw(canvas: Canvas) {
@@ -59,7 +71,36 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
             }
 
             canvas.drawBitmap(player.bitmap, player.x.toFloat(), player.y.toFloat(), paint)
+
+            drawHUD(canvas)
         }
+    }
+
+    private fun drawHUD(canvas: Canvas) {
+        paint.setTextSize(100f)
+
+        if (!gameEnded) {
+            paint.setColor(Color.argb(255, 66, 84, 245))
+
+            canvas.drawText("Shield: ${player.shieldStrength}",
+                50f, 120f, paint)
+
+            canvas.drawText("Speed: ${player.speed}",
+                50f, 250f, paint)
+
+            canvas.drawText("Fastest: ${fastestTime}",
+                 50f, (height - 150).toFloat(), paint)
+            canvas.drawText("Time: ${timeTaken}",
+                   50f, (height - 250).toFloat(), paint)
+        } else {
+            paint.setColor(Color.argb(255, 255, 0, 0))
+
+            canvas.drawText("Game over",
+                300f, 250f, paint)
+            canvas.drawText("Tap to play again",
+                200f, 750f, paint)
+        }
+
     }
 
     public fun update() {
@@ -78,6 +119,7 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
                 hitDetected = true
             }
         }
+
         if (hitDetected) {
             player.reduceShieldStrength()
             if (player.shieldStrength < 0) {
@@ -85,6 +127,34 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
                 player.shieldStrength = 0
             }
         }
+
+        if (!gameEnded) {
+            distanceRemaining -= player.speed
+            timeTaken = System.currentTimeMillis() - timeStarted
+        }
+
+        if (distanceRemaining < 0) {
+            distanceRemaining = 0
+
+            if (timeTaken < fastestTime) {
+                fastestTime = timeTaken
+
+                context.getSharedPreferences("RMAI-High-Scores", Context.MODE_PRIVATE)
+                    .apply {
+                        edit().putLong("fastestTime", fastestTime).apply()
+                    }
+            }
+
+            gameEnded = true
+        }
+    }
+
+    private fun startGame() {
+        player.resetShieldStrength()
+        gameEnded = false
+
+        timeTaken = 0
+        timeStarted = System.currentTimeMillis()
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -94,6 +164,10 @@ class GameView(context: Context, width: Int, height: Int) : SurfaceView(context)
             }
            MotionEvent.ACTION_DOWN -> {
                 player.boosting = true
+
+               if (gameEnded) {
+                   startGame()
+               }
            }
        }
 
